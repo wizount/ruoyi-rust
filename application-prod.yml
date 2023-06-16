@@ -12,5 +12,3 @@ white_list_api:
   - "/prod-api/login"
   - "/prod-api/logout"
   - "/prod-api/captchaImage"
-  - "/prod-api/ws/lp"
-  - "/prod-api/ws/redis"

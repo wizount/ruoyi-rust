@@ -8,5 +8,3 @@ white_list_api:
   - "/dev-api/login"
   - "/dev-api/logout"
   - "/dev-api/captchaImage"
-  - "/dev-api/ws/lp"
-  - "/dev-api/ws/redis"
