@@ -1,0 +1,13 @@
+pub mod img_controller;
+pub mod sys_auth_controller;
+pub mod sys_dict_type_controller;
+pub mod sys_dict_data_controller;
+pub mod sys_menu_controller;
+pub mod sys_role_controller;
+pub mod sys_user_controller;
+pub mod sys_config_controller;
+pub mod sys_dept_controller;
+pub mod sys_post_controller;
+pub mod monitor;
+pub mod sys_profile_controller;
+pub mod sys_notice_controller;

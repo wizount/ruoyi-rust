@@ -1,0 +1,65 @@
+#debug模式，true输出控制台日志，false只输出文件日志.生产环境需要关闭debug，rbatis也需移除"debug_mode"
+debug: true
+#名称
+server_name: "ruoyi_rust"
+#server 地址
+server_url: "0.0.0.0:8080"
+#相对应若依平台的VITE_APP_BASE_API
+base_api: "/"
+#缓存介质类型,单选("mem","redis")
+cache_type: "redis"
+
+#web后台 redis地址(cache_type为“redis”时有效)
+web_redis_url: "redis://127.0.0.1:6379" #这是db0
+
+#后台用数据库地址
+database_url: "mysql://root:123456@localhost/ruoyi-rust"
+#逻辑删除-字段
+logic_column: "del"
+#逻辑删除-未删除标志
+logic_un_deleted: 0
+#逻辑删除-已删除标志
+logic_deleted: 1
+#日志文件存放目录
+log_dir: "target/logs/"
+#日志分割尺寸-单位KB,MB,GB
+log_temp_size: "100MB"
+#日志打包格式可选“”（空-保留.log）“gzip”（gz压缩包）“zip”（zip压缩包）“lz4”（lz4压缩包（非常快））
+#需要打开以下选项
+#toml文件里面，fast_log 添加   fast_log = { version = "1.5",features = ["lz4", "zip", "gzip"]}
+#src/config/log.rs    解除   fn choose_packer()下的注释
+#application.yml      添加   log_pack_compress: "zip"
+log_pack_compress: ""
+#日志滚动保留-保留全部: All,按时间保留(秒): KeepTime(i64),按版本保留: KeepNum(i64)
+log_rolling_type: "KeepNum(20)"
+#日志等级: off,info,error,warn,debug,trace
+log_level: "debug"
+#Log channel length, null for unbounded queue, non-null for bounded queue (better performance)
+log_chan_len: 100000
+#JwtToken秘钥
+jwt_secret: "ruoyi_rust_vue3"
+#短信通道缓存（系统先把数据放入队列sms:send:，第三方短信sdk或程序需要从队列获取并发送，获得回执存入sms:resp:*）,格式为sms:send:手机号和sms:resp:手机号
+sms_cache_send_key_prefix: "sms:send:"
+#登陆失败拒绝策略，重试次数限制(0次无限制)
+login_fail_retry: 3
+#登陆失败重试次数限制超过后提示的等待时间（秒）
+login_fail_retry_wait_sec: 30
+#接口白名单（免登陆直接访问）
+white_list_api:
+  - "/"
+  - "/login"
+  - "/logout"
+  - "/captchaImage"
+  - "/ws/lp"
+  - "/ws/redis"
+#是否启用验证码
+captcha_enabled: false
+#验证码过期时间（分钟）
+captcha_expired_min: 2
+#Token过期时间（分钟）
+token_expired_min: 60
+
+
+
+
+

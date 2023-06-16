@@ -1,0 +1,12 @@
+#相对应若依平台的VITE_APP_BASE_API
+base_api: "/dev-api"
+
+
+#接口白名单（免登陆直接访问）
+white_list_api:
+  - "/"
+  - "/dev-api/login"
+  - "/dev-api/logout"
+  - "/dev-api/captchaImage"
+  - "/dev-api/ws/lp"
+  - "/dev-api/ws/redis"

@@ -1,0 +1,18 @@
+user_agent_parsers:
+  - regex: '(ESPN)[%20| ]+Radio/(\d+)\.(\d+)\.(\d+) CFNetwork'
+  - regex: '(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)\.(\d+(?:pre|))'
+    family_replacement: 'Firefox ($1)'
+  - regex: '(Android) Eclair'
+    v1_replacement: '2'
+    v2_replacement: '1'
+
+os_parsers:
+  - regex: 'Win(?:dows)? ?(95|98|3.1|NT|ME|2000|XP|Vista|7|CE)'
+    os_replacement: 'Windows'
+    os_v1_replacement: '$1'
+
+device_parsers:
+  - regex: '\bSmartWatch *\( *([^;]+) *; *([^;]+) *;'
+    device_replacement: '$1 $2'
+    brand_replacement: '$1'
+    model_replacement: '$2'

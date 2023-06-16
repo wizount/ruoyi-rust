@@ -1,0 +1,93 @@
+[package]
+name = "ruoyi_rust"
+version = "0.1.0"
+authors = ["wizount <2537660666@qq.com>"]
+edition = "2021"
+
+
+[[bin]]
+name = "ruoyi_rust_prod"
+path = "src/main.rs"
+
+[[bin]]
+name = "ruoyi_rust_dev"
+path = "src/main.rs"
+
+#[build-dependencies]
+#tauri-build = { version = "1.2.0", features = [] }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+
+rbs = { version = "4" }
+rbatis = { version = "4" }
+rbdc-mysql = { version = "4" }
+
+#rbatis orm dep must use async-std(Because actix-web relies on tokio0.2)
+tokio = { version = "1", features = ["full"] }
+#serde and jso
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+merge-yaml-hash = "0.2"
+#log
+log = "0.4"
+#fast_log enable features = ["lz4", "zip", "gzip"], and edit src/config/log.rs fn choose_packer(),edit application.yml add log_pack_compress: "zip"
+fast_log = { version = "1.5", features = [] }
+#web server
+actix = '0.13.0'
+actix-web = { version = "4", default-features = false, features = ["macros"] }
+actix-http = "3"
+actix-multipart = "0.4"
+actix-files = "0.6.2"
+#actix-web-actors = "4.1.0"
+#redis
+redis = { version = "0.22.3", features = ["tokio-comp"] }
+#jwt
+jsonwebtoken = "8"
+#snowflake
+rustflake = "0.1"
+# enc passowrd, like springboot secutiry
+bcrypt = "0.13"
+#captcha
+captcha = "0.0.9"
+
+actix-easy-multipart = "3.0"
+
+#image code
+image = "0.24"
+tokio-util = { version = "0.7.4", features = ["codec"] }
+tokio-stream = { version = "0.1.3", features = ["sync"] }
+#lazy
+once_cell = "1.9"
+futures-util = "0.3.21"
+parking_lot = "0.12.1"
+
+uuid = { version = "1.2.2", default-features = false, features = ["v4", "fast-rng", "macro-diagnostics"] }
+
+url = "2.2" #
+chrono = "0.4.23"
+user-agent-parser = "0.3.4"
+
+base64 = "0.20.0"
+
+actix-web-validator = "5.0.1" #加入验证框架
+validator = { version = "0.16", features = ["derive"] }#加入验证框架
+
+permit-lib = { path = "./permit-lib" }
+
+
+
+
+# 系统信息
+sysinfo = "0.28.2"
+#ByteSize is an utility that easily makes bytes size representation and helps its arithmetic operations.
+bytesize = "1.2.0"
+
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+
+
