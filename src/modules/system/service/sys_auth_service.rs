@@ -161,7 +161,7 @@ impl SysAuthService {
 
         let mut need_chn_pwd = false;
         let (permissions, menu_ids, roles) =
-            if last_chn_pwd_time.is_none_or(|d| d.add(Duration::from_secs(180 * 86400)).before(&DateTime::now())) {
+            if CONTEXT.config.chn_pwd_check && last_chn_pwd_time.is_none_or(|d| d.add(Duration::from_secs(180 * 86400)).before(&DateTime::now())) {
                 need_chn_pwd = true;
                 (vec![], vec![], vec![])
             } else {

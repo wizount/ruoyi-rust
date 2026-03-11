@@ -83,7 +83,7 @@ impl Intercept for SysTrashService {
             let dialect = GenericDialect {}; // or AnsiDialect
             let mut v: Vec<Statement> = Parser::parse_sql(&dialect, &sql.clone())
                 .map_err(|e| Error::from(e.to_string()))?;
-            if v.len() <= 0 {
+            if v.is_empty() {
                 return Err(Error::from("sql is empty"));
             }
             let table = match v.remove(0) {
