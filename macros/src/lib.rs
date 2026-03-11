@@ -7,58 +7,113 @@ use syn::parse::Parser;
 use syn::Data::Struct;
 use syn::{parse_macro_input, parse_quote, DataStruct, DeriveInput, Field, FnArg, ItemFn, LitFloat, LitStr, Meta};
 
+/// 权限验证宏
+///
+/// # 功能
+/// 该宏用于在函数执行前进行权限验证，只有验证通过才会执行原函数
+///
+/// # 使用示例
+/// ```rust
+/// #[pre_authorize("system:user:list")]
+/// pub async fn list_users() -> Response {
+///     // 业务逻辑
+/// }
+///
+/// #[pre_authorize("system:user:add", user_info)]
+/// pub async fn add_user() -> Response {
+///     // 业务逻辑
+/// }
+/// ```
+///
+/// # 参数说明
+/// - 第一个参数（可选）：权限字符串，如 "system:user:list"，用于检查用户是否具有该权限
+/// - 第二个参数（可选）：用户缓存变量名，默认为 `user_cache`，指定从哪个变量获取用户信息
+///
+/// # 宏展开逻辑
+/// 1. 提取原函数的所有属性、声明等信息
+/// 2. 解析宏属性参数，获取权限字符串和用户标识符
+/// 3. 如果未提供用户标识符，默认使用 `user_cache`
+/// 4. 如果未提供权限字符串，默认使用空字符串
+/// 5. 重新构建函数签名，添加 `UserCache` 参数
+/// 6. 在函数体中添加权限检查逻辑
+/// 7. 权限验证通过（返回 None）则执行原函数体
+/// 8. 权限验证失败（返回 Some(res)）则直接返回错误响应
+///
+/// # 权限检查
+/// 通过调用 `crate::web::check_permit` 函数进行权限验证
+/// - 返回 `None` 表示验证通过，执行原函数
+/// - 返回 `Some(res)` 表示验证失败，直接返回错误响应
 #[proc_macro_attribute]
 pub fn pre_authorize(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // 解析传入的函数项，获取函数的所有信息
     let func = parse_macro_input!(item as ItemFn); // 我们传入的是一个函数，所以要用到ItemFn
-    let func_vis = &func.vis; // pub
-    let func_block = &func.block; //.stmts.iter().map(|r|r.to_token_stream().to_string()).collect::<Vec<_>>().join("\n"); // 函数主体实现部分{}
+    let func_vis = &func.vis; // 函数可见性（如 pub、pub(crate) 等）
+    let func_block = &func.block; // 函数体，包含函数的实际实现代码块
 
-    let func_decl = &func.sig; // 函数申明
+    let func_decl = &func.sig; // 函数签名，包含函数名、参数、返回值等信息
 
-    let func_attrs = &func.attrs;
+    let func_attrs = &func.attrs; // 函数上的其他属性（如 #[doc]、#[async_trait] 等）
     let func_name = &func_decl.ident; // 函数名
-    let func_asyncness = &func_decl.asyncness; // 函数名
-    let func_generics = &func_decl.generics; // 函数泛型
-    let func_inputs = &func_decl.inputs; // 函数输入参数
-    let func_output = &func_decl.output; // 函数返回
+    let func_asyncness = &func_decl.asyncness; // 是否为异步函数（async fn）
+    let func_generics = &func_decl.generics; // 函数泛型参数
+    let func_inputs = &func_decl.inputs; // 函数输入参数列表
+    let func_output = &func_decl.output; // 函数返回类型
 
+    // 定义属性解析器，用于解析宏属性参数
     let parser = |input: syn::parse::ParseStream| {
-        let mut permit_str = None;
-        let mut user_ident = None;
+        let mut permit_str = None; // 权限字符串，用于检查用户是否具有该权限
+        let mut user_ident = None; // 用户缓存标识符，指定从哪个变量获取用户信息
 
         while !input.is_empty() {
             if input.peek(syn::LitStr) {
-                // 解析权限字符串
+                // 解析权限字符串，如 "system:user:list"
                 permit_str = Some(input.parse::<syn::LitStr>()?);
             } else if input.peek(syn::Ident) {
+                // 解析用户标识符，如 user_info、current_user 等
                 user_ident = Some(input.parse::<syn::Ident>()?);
             } else if input.peek(syn::Token![,]) {
+                // 跳过逗号分隔符
                 input.parse::<syn::Token![,]>()?;
             }
         }
         Ok((permit_str, user_ident))
     };
+
+    // 解析宏属性参数，获取权限字符串和用户标识符
     let (mut permit_str, mut user_ident) = match parser.parse(attr) {
         Ok(attr) => attr,
-        Err(e) => return e.to_compile_error().into(),
+        Err(e) => return e.to_compile_error().into(), // 解析失败时返回编译错误
     };
 
+    // 如果没有提供用户标识符，使用默认值 `user_cache`
     if user_ident.is_none() {
         user_ident = Some(parse_quote!(user_cache));
     }
+    // 如果没有提供权限字符串，使用默认空字符串
     if permit_str.is_none() {
         permit_str = Some(parse_quote!(""));
     }
+
+    // 构建展开后的代码，包含权限检查逻辑
     let expanded = quote! { // 重新构建函数执行
+        // 保留原函数的所有属性
         #(#func_attrs)*
+        // 重新构建函数签名：
+        // - 添加 UserCache 类型的参数作为第一个参数
+        // - 保留原有的可见性、异步性、函数名、泛型、参数和返回值
         #func_vis #func_asyncness fn #func_name #func_generics(#user_ident: crate::UserCache,#func_inputs) #func_output{
+            // 在函数体中添加权限检查逻辑
+            // 调用 crate::web::check_permit 进行权限验证
             match crate::web::check_permit(&#user_ident, #permit_str).await {
+                // 权限验证通过（None），执行原函数体
                 None =>  #func_block
+                // 权限验证失败（Some(res)），直接返回错误响应
                 Some(res) => { res.into_response() }
             }
         }
     };
 
+    // 返回展开后的代码
     expanded.into()
 }
 
@@ -744,7 +799,7 @@ pub fn replace_pool(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let func_decl = &input_fn.sig; // 函数申明
 
-  //  let func_attrs = &input_fn.attrs;
+    //  let func_attrs = &input_fn.attrs;
     let func_name = &func_decl.ident; // 函数名
     let func_asyncness = &func_decl.asyncness; // 函数名
     let func_generics = &func_decl.generics; // 函数泛型
